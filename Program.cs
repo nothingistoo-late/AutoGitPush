@@ -5,15 +5,14 @@ using System.Threading;
 
 class AutoGitPush
 {
-    // test conflic
     static void Main()
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
         Console.TreatControlCAsInput = true;
 
-        while (true) // Vòng lặp để restart app sau mỗi lần chạy
+        while (true)
         {
-            Console.Clear(); // Xóa màn hình console
+            Console.Clear();
             Console.WriteLine("🔹 Nhấn ESC bất kỳ lúc nào để thoát chương trình.\n");
 
             string folderPath = ReadValidFolderPath();
@@ -65,25 +64,14 @@ class AutoGitPush
     {
         Console.WriteLine("🔍 Kiểm tra thay đổi trong repo...");
 
-        // Thực hiện git pull trước khi tiếp tục
-        string pullOutput = RunCommand($"git pull origin master", repoPath);
+        // Thực hiện git pull --rebase để đồng bộ với remote
+        string pullOutput = RunCommand($"git pull --rebase origin {branch}", repoPath);
 
         // Kiểm tra nếu có conflict sau khi pull
         if (pullOutput.Contains("CONFLICT"))
         {
             Console.WriteLine("❌ Gặp phải conflict! Hãy giải quyết conflict và thử lại.\n");
             return;
-        }
-
-        // Kiểm tra xem có merge commit nào không
-        if (pullOutput.Contains("Merge branch"))
-        {
-            Console.WriteLine("🔄 Merge hoàn tất, bạn cần push lên remote.");
-
-            // Thực hiện git push sau khi merge
-            string pushOutput = RunCommand($"git push origin {branch}", repoPath);
-            Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
-            return; // Không cần tiếp tục commit nữa
         }
 
         string changes = RunCommand("git status --porcelain", repoPath);
@@ -111,7 +99,6 @@ class AutoGitPush
             Console.WriteLine("✅ Không có thay đổi để commit.\n");
         }
     }
-
 
     static string RunCommand(string command, string workingDir)
     {
@@ -152,7 +139,7 @@ class AutoGitPush
             var key = Console.ReadKey(true);
             if (key.Key == ConsoleKey.Enter)
             {
-                Console.WriteLine(); // 🛠 Fix lỗi không xuống dòng trước khi trả về
+                Console.WriteLine();
                 return input.Trim();
             }
             if (key.Key == ConsoleKey.Escape)
