@@ -64,7 +64,15 @@ class AutoGitPush
     {
         Console.WriteLine("🔍 Kiểm tra thay đổi trong repo...");
 
-        RunCommand($"git pull origin {branch}", repoPath);
+        string pullOutput = RunCommand($"git pull origin {branch}", repoPath);
+
+        // Kiểm tra nếu có conflict sau khi pull
+        if (pullOutput.Contains("CONFLICT"))
+        {
+            Console.WriteLine("❌ Gặp phải conflict! Hãy giải quyết conflict và thử lại.\n");
+            return;
+        }
+
         string changes = RunCommand("git status --porcelain", repoPath);
 
         if (string.IsNullOrEmpty(changes.Trim()))
@@ -79,6 +87,7 @@ class AutoGitPush
         RunCommand($"git push origin {branch}", repoPath);
         Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
     }
+
 
     static string RunCommand(string command, string workingDir)
     {
