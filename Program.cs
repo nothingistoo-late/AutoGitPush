@@ -15,32 +15,14 @@ class AutoGitPush
             Console.Clear(); // Xóa màn hình console
             Console.WriteLine("🔹 Nhấn ESC bất kỳ lúc nào để thoát chương trình.\n");
 
-            Console.Write("📂 Nhập đường dẫn folder (ví dụ: D:\\Note): ");
-            string folderPath = ReadInputWithEsc();
+            string folderPath = ReadValidFolderPath();
             if (folderPath == null) return;
 
-            if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
-            {
-                Console.WriteLine("❌ Đường dẫn không hợp lệ hoặc không tồn tại! Hãy nhập lại.\n");
-                continue;
-            }
-
-            if (!Directory.Exists(Path.Combine(folderPath, ".git")))
-            {
-                Console.WriteLine("❌ Thư mục này chưa được khởi tạo Git! Vui lòng chạy lệnh:");
-                Console.WriteLine($"   git init && git remote add origin GITHUB_URL\n");
-                continue;
-            }
-
-            Console.Write("🌿 Nhập tên nhánh (mặc định: master): ");
-            string branch = ReadInputWithEsc();
+            string branch = ReadInput("🌿 Nhập tên nhánh (mặc định: master): ", "master");
             if (branch == null) return;
-            if (string.IsNullOrEmpty(branch)) branch = "master";
 
-            Console.Write("📝 Nhập commit message (mặc định: Auto commit update): ");
-            string commitMessage = ReadInputWithEsc();
+            string commitMessage = ReadInput("📝 Nhập commit message (mặc định: Auto commit update): ", "Auto commit update");
             if (commitMessage == null) return;
-            if (string.IsNullOrEmpty(commitMessage)) commitMessage = "Auto commit update";
 
             Console.WriteLine($"\n🚀 Bắt đầu commit & push lên nhánh '{branch}' với message: \"{commitMessage}\"...\n");
 
@@ -48,6 +30,33 @@ class AutoGitPush
 
             Console.WriteLine("🔁 Hoàn thành! Nhấn Enter để nhập lại folder mới hoặc ESC để thoát...");
             if (WaitForEscOrEnter()) return;
+        }
+    }
+
+    static string ReadValidFolderPath()
+    {
+        while (true)
+        {
+            Console.Write("📂 Nhập đường dẫn folder (ví dụ: D:\\Note): ");
+            string folderPath = ReadInputWithEsc();
+            if (folderPath == null) return null;
+
+            if (!Directory.Exists(folderPath))
+            {
+                Console.WriteLine("❌ Thư mục không tồn tại! Hãy nhập lại.\n");
+                continue;
+            }
+
+            if (!Directory.Exists(Path.Combine(folderPath, ".git")))
+            {
+                Console.WriteLine("❌ Thư mục này chưa được khởi tạo Git!");
+                Console.WriteLine("⚡ Vui lòng chạy tạo repository trên github và thử lại:");
+                Console.WriteLine("🔄 Nhấn Enter để thoát chương trình...");
+                Console.ReadKey();
+                return null;
+            }
+
+            return folderPath;
         }
     }
 
@@ -131,6 +140,12 @@ class AutoGitPush
         }
     }
 
+    static string ReadInput(string message, string defaultValue)
+    {
+        Console.Write(message);
+        string input = ReadInputWithEsc();
+        return input == "" ? defaultValue : input;
+    }
 
     static bool WaitForEscOrEnter()
     {
