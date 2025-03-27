@@ -5,6 +5,7 @@ using System.Threading;
 
 class AutoGitPush
 {
+    // test conflic part 2
     static void Main()
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
