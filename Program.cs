@@ -1,18 +1,23 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 class AutoGitPush
 {
     static void Main()
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
+        Console.TreatControlCAsInput = true;
 
-        while (true) // Vòng lặp vô hạn để restart app sau mỗi lần chạy
+        while (true) // Vòng lặp để restart app sau mỗi lần chạy
         {
-            Console.Clear(); // Xóa màn hình console để làm mới
+            Console.Clear(); // Xóa màn hình console
+            Console.WriteLine("🔹 Nhấn ESC bất kỳ lúc nào để thoát chương trình.\n");
+
             Console.Write("📂 Nhập đường dẫn folder (ví dụ: D:\\Note): ");
-            string folderPath = Console.ReadLine()?.Trim();
+            string folderPath = ReadInputWithEsc();
+            if (folderPath == null) return;
 
             if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
             {
@@ -28,19 +33,21 @@ class AutoGitPush
             }
 
             Console.Write("🌿 Nhập tên nhánh (mặc định: master): ");
-            string branch = Console.ReadLine()?.Trim();
+            string branch = ReadInputWithEsc();
+            if (branch == null) return;
             if (string.IsNullOrEmpty(branch)) branch = "master";
 
             Console.Write("📝 Nhập commit message (mặc định: Auto commit update): ");
-            string commitMessage = Console.ReadLine()?.Trim();
+            string commitMessage = ReadInputWithEsc();
+            if (commitMessage == null) return;
             if (string.IsNullOrEmpty(commitMessage)) commitMessage = "Auto commit update";
 
             Console.WriteLine($"\n🚀 Bắt đầu commit & push lên nhánh '{branch}' với message: \"{commitMessage}\"...\n");
 
             AutoCommitPush(folderPath, branch, commitMessage);
 
-            Console.WriteLine("🔁 Hoàn thành! Nhấn Enter để nhập lại folder mới và bắt đầu cyle mới...");
-            Console.ReadLine(); // Đợi người dùng nhấn Enter để bắt đầu lại
+            Console.WriteLine("🔁 Hoàn thành! Nhấn Enter để nhập lại folder mới hoặc ESC để thoát...");
+            if (WaitForEscOrEnter()) return;
         }
     }
 
@@ -93,5 +100,49 @@ class AutoGitPush
         }
 
         return output;
+    }
+
+    static string ReadInputWithEsc()
+    {
+        string input = "";
+        while (true)
+        {
+            var key = Console.ReadKey(true);
+            if (key.Key == ConsoleKey.Enter)
+            {
+                Console.WriteLine(); // 🛠 Fix lỗi không xuống dòng trước khi trả về
+                return input.Trim();
+            }
+            if (key.Key == ConsoleKey.Escape)
+            {
+                Console.WriteLine("\n👋 Thoát chương trình...");
+                return null;
+            }
+            if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+            {
+                input = input.Substring(0, input.Length - 1);
+                Console.Write("\b \b");
+            }
+            else if (!char.IsControl(key.KeyChar))
+            {
+                input += key.KeyChar;
+                Console.Write(key.KeyChar);
+            }
+        }
+    }
+
+
+    static bool WaitForEscOrEnter()
+    {
+        while (true)
+        {
+            var key = Console.ReadKey(true);
+            if (key.Key == ConsoleKey.Enter) return false;
+            if (key.Key == ConsoleKey.Escape)
+            {
+                Console.WriteLine("\n👋 Thoát chương trình...");
+                return true;
+            }
+        }
     }
 }
