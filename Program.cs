@@ -66,13 +66,24 @@ class AutoGitPush
         Console.WriteLine("🔍 Kiểm tra thay đổi trong repo...");
 
         // Thực hiện git pull trước khi tiếp tục
-        string pullOutput = RunCommand($"git pull origin {branch}", repoPath);
+        string pullOutput = RunCommand($"git pull origin master", repoPath);
 
         // Kiểm tra nếu có conflict sau khi pull
         if (pullOutput.Contains("CONFLICT"))
         {
             Console.WriteLine("❌ Gặp phải conflict! Hãy giải quyết conflict và thử lại.\n");
             return;
+        }
+
+        // Kiểm tra xem có merge commit nào không
+        if (pullOutput.Contains("Merge branch"))
+        {
+            Console.WriteLine("🔄 Merge hoàn tất, bạn cần push lên remote.");
+
+            // Thực hiện git push sau khi merge
+            string pushOutput = RunCommand($"git push origin {branch}", repoPath);
+            Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
+            return; // Không cần tiếp tục commit nữa
         }
 
         string changes = RunCommand("git status --porcelain", repoPath);
@@ -100,6 +111,7 @@ class AutoGitPush
             Console.WriteLine("✅ Không có thay đổi để commit.\n");
         }
     }
+
 
     static string RunCommand(string command, string workingDir)
     {
