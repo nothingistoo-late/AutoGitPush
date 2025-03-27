@@ -39,7 +39,7 @@ class AutoGitPush
 
             AutoCommitPush(folderPath, branch, commitMessage);
 
-            Console.WriteLine("🔁 Hoàn thành! Nhấn Enter để nhập lại folder mới...");
+            Console.WriteLine("🔁 Hoàn thành! Nhấn Enter để nhập lại folder mới và bắt đầu cyle mới...");
             Console.ReadLine(); // Đợi người dùng nhấn Enter để bắt đầu lại
         }
     }
