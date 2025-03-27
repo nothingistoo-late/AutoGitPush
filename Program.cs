@@ -64,6 +64,7 @@ class AutoGitPush
     {
         Console.WriteLine("🔍 Kiểm tra thay đổi trong repo...");
 
+        // Thực hiện git pull trước khi tiếp tục
         string pullOutput = RunCommand($"git pull origin {branch}", repoPath);
 
         // Kiểm tra nếu có conflict sau khi pull
@@ -82,12 +83,22 @@ class AutoGitPush
         }
 
         Console.WriteLine("🔄 Có thay đổi! Tiến hành commit và push...");
-        RunCommand("git add .", repoPath);
-        RunCommand($"git commit -m \"{commitMessage}\"", repoPath);
-        RunCommand($"git push origin {branch}", repoPath);
-        Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
-    }
 
+        // Thực hiện git add, commit và push
+        RunCommand("git add .", repoPath);
+        string commitOutput = RunCommand($"git commit -m \"{commitMessage}\"", repoPath);
+
+        // Kiểm tra nếu commit thành công, sau đó thực hiện git push
+        if (!commitOutput.Contains("nothing to commit"))
+        {
+            string pushOutput = RunCommand($"git push origin {branch}", repoPath);
+            Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
+        }
+        else
+        {
+            Console.WriteLine("✅ Không có thay đổi để commit.\n");
+        }
+    }
 
     static string RunCommand(string command, string workingDir)
     {
