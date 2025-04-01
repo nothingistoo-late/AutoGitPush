@@ -65,8 +65,26 @@ class AutoGitPush
     {
         Console.WriteLine("🔍 Kiểm tra thay đổi trong repo...");
 
-        // Thực hiện git pull --rebase để đồng bộ với remote
+        // Kiểm tra thay đổi cục bộ (unstaged hoặc uncommitted)
+        string changes = RunCommand("git status --porcelain", repoPath);
+
+        if (!string.IsNullOrEmpty(changes.Trim()))
+        {
+            Console.WriteLine("🔄 Có thay đổi cục bộ! Tiến hành commit trước khi pull...");
+
+            // Thực hiện git add, commit
+            RunCommand("git add .", repoPath);
+            string commitOutput = RunCommand($"git commit -m \"{commitMessage}\"", repoPath);
+        }
+
+        // Bây giờ repo đã sạch, có thể pull
         string pullOutput = RunCommand($"git pull --rebase origin {branch}", repoPath);
+
+        // Kiểm tra nếu pull thành công và có thay đổi
+        if (pullOutput.Contains("Updating") || pullOutput.Contains("Fast-forward"))
+        {
+            Console.WriteLine("📥 Có thay đổi trên remote, đang pull về...");
+        }
 
         // Kiểm tra nếu có conflict sau khi pull
         if (pullOutput.Contains("CONFLICT"))
@@ -75,31 +93,14 @@ class AutoGitPush
             return;
         }
 
-        string changes = RunCommand("git status --porcelain", repoPath);
-
-        if (string.IsNullOrEmpty(changes.Trim()))
-        {
-            Console.WriteLine("✅ Không có thay đổi. Đợi lần kiểm tra tiếp theo...\n");
-            return;
-        }
-
-        Console.WriteLine("🔄 Có thay đổi! Tiến hành commit và push...");
-
-        // Thực hiện git add, commit và push
-        RunCommand("git add .", repoPath);
-        string commitOutput = RunCommand($"git commit -m \"{commitMessage}\"", repoPath);
-
-        // Kiểm tra nếu commit thành công, sau đó thực hiện git push
-        if (!commitOutput.Contains("nothing to commit"))
-        {
-            string pushOutput = RunCommand($"git push origin {branch}", repoPath);
-            Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
-        }
-        else
-        {
-            Console.WriteLine("✅ Không có thay đổi để commit.\n");
-        }
+        // Nếu commit trước đó thành công, push lên GitHub
+        string pushOutput = RunCommand($"git push origin {branch}", repoPath);
+        Console.WriteLine($"🚀 Push lên GitHub thành công trên nhánh '{branch}'!\n");
     }
+
+
+
+
 
     static string RunCommand(string command, string workingDir)
     {
